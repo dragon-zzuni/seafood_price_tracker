@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:15
+    container_name: seafood-postgres
+    environment:
+      POSTGRES_DB: seafood
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d seafood"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 캐시
+  redis:
+    image: redis:7-alpine
+    container_name: seafood-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Core Service (FastAPI)
+  core:
+    build:
+      context: ./core-service
+      dockerfile: Dockerfile
+    container_name: seafood-core
+    environment:
+      DATABASE_URL: postgresql://user:pass@postgres:5432/seafood
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./core-service:/app
+    restart: unless-stopped
+
+  # ML Service (FastAPI)
+  ml:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: seafood-ml
+    environment:
+      MODEL_PATH: /models
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./ml-service:/app
+      - ./models:/models
+    restart: unless-stopped
+    # GPU 사용 시 주석 해제
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # BFF (NestJS)
+  bff:
+    build:
+      context: ./bff
+      dockerfile: Dockerfile
+    container_name: seafood-bff
+    environment:
+      REDIS_URL: redis://redis:6379
+      CORE_SERVICE_URL: http://core:8000
+      ML_SERVICE_URL: http://ml:8001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - core
+      - ml
+    volumes:
+      - ./bff:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  # Data Ingestion Service
+  ingestion:
+    build:
+      context: ./data-ingestion
+      dockerfile: Dockerfile
+    container_name: seafood-ingestion
+    environment:
+      DATABASE_URL: postgresql://user:pass@postgres:5432/seafood
+      SCHEDULE_TIMES: "08:30,11:30,15:30"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./data-ingestion:/app
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: seafood-network

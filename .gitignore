@@ -1,0 +1,74 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+!.env.example
+.env
+.env.*
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.venv/
+venv/
+ENV/
+
+# Node / TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Flutter / Dart
+.buildlog/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.dart_tool/
+build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+macos/Flutter/ephemeral/
+android/.gradle/
+android/app/*.iml
+android/local.properties
+android/key.properties
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Docker
+**/data/
+**/logs/
+
+# Coverage
+coverage/
+htmlcov/
+*.cover
+*.coverage
+
+# Test artifacts (exclude all test sources)
+**/tests/
+**/test/
+**/test_*.*
+**/*_test.*
+**/*.spec.*
+**/*.test.*
+**/*Test.java
+**/*Test.kt
+**/*.e2e-spec.*
