@@ -20,64 +20,41 @@ flutter run
 
 ## 🔧 환경 변수 설정 (선택사항)
 
-### 방법 1: 모바일 앱만 설정 (권장)
-
-`mobile/.env` 파일 하나만 생성:
-
+### 루트 `.env` 하나로 전체 서비스 구성
 ```bash
-# Android 에뮬레이터
-API_BASE_URL=http://10.0.2.2:3000
-
-# iOS 시뮬레이터
-# API_BASE_URL=http://localhost:3000
-
-# 실제 디바이스 (PC IP로 변경)
-# API_BASE_URL=http://192.168.1.100:3000
-```
-
-### 방법 2: 전체 시스템 설정
-
-#### 1️⃣ 루트 `.env` (Docker Compose용)
-```bash
+# PostgreSQL
 POSTGRES_DB=seafood
 POSTGRES_USER=seafood_user
 POSTGRES_PASSWORD=your_password
-
-REDIS_URL=redis://redis:6379
 DATABASE_URL=postgresql://seafood_user:your_password@postgres:5432/seafood
 
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_URL=redis://redis:6379
+
+# 서비스 URL
 CORE_SERVICE_URL=http://core:8000
 ML_SERVICE_URL=http://ml:8001
 
+# Data Ingestion
 SCHEDULE_TIMES=08:30,11:30,15:30
-PUBLIC_API_KEY=your_kamis_api_key
-```
+RUN_IMMEDIATELY=false
+GARAK_API_KEY=your_garak_api_key
+PUBLIC_DATA_API_KEY=your_public_data_api_key
 
-#### 2️⃣ `bff/.env`
-```bash
-REDIS_URL=redis://localhost:6379
-CORE_SERVICE_URL=http://localhost:8000
-ML_SERVICE_URL=http://localhost:8001
-PORT=3000
-```
+# ML Service
+MODEL_PATH=/models
+DETECTION_MODEL=yolo12n.pt
+CLIP_MODEL_NAME=ViT-B-32
+CLIP_PRETRAINED=openai
 
-#### 3️⃣ `core-service/.env`
-```bash
-DATABASE_URL=postgresql://seafood_user:your_password@localhost:5432/seafood
-REDIS_URL=redis://localhost:6379
-```
-
-#### 4️⃣ `ml-service/.env`
-```bash
-MODEL_PATH=./models
-DETECTION_MODEL=yolo_detect.pt
-CLASSIFICATION_MODEL=yolo_classify.pt
-```
-
-#### 5️⃣ `mobile/.env`
-```bash
+# Mobile 기본 API
 API_BASE_URL=http://10.0.2.2:3000
 ```
+
+루트 `.env` 한 파일이 Docker Compose, 각 백엔드 서비스, 모바일 앱(Flutter)이 모두 공유하는 단일 설정 원본입니다.  
+모바일 앱은 `../.env`를 직접 로드하도록 구성했기 때문에 별도의 `mobile/.env` 파일이 필요 없습니다.
 
 ## 🚀 실행 시나리오
 
@@ -125,9 +102,8 @@ flutter run
 
 ## 🔍 환경 변수 우선순위
 
-1. **mobile/.env** → 모바일 앱 설정
+1. **루트 .env** → 모든 서비스(모바일 포함)
 2. **코드 기본값** → `http://10.0.2.2:3000` (Android 에뮬레이터)
-3. **환경 변수 없음** → 앱은 실행되지만 API 호출 실패
 
 ## ❓ FAQ
 
@@ -138,7 +114,7 @@ flutter run
 **A**: 네! UI, 네비게이션, 에러 처리 등 모든 화면을 확인할 수 있습니다.
 
 ### Q: 환경 변수를 하나로 통합할 수 없나요?
-**A**: 각 서비스가 독립적으로 실행되므로 개별 .env가 필요합니다. 하지만 **모바일 앱만 테스트**한다면 `mobile/.env` 하나면 충분합니다.
+**A**: 이미 루트 `.env` 한 파일로 모든 서비스(모바일 포함)가 동작합니다.
 
 ### Q: Docker Compose 사용 시 .env는 어디에?
 **A**: 루트 디렉토리의 `.env` 파일 하나로 모든 서비스 설정이 가능합니다.
@@ -146,7 +122,7 @@ flutter run
 ### Q: 실제 디바이스에서 테스트하려면?
 **A**: 
 1. PC의 로컬 IP 확인 (Windows: `ipconfig`, Mac: `ifconfig`)
-2. `mobile/.env`에서 `API_BASE_URL=http://YOUR_PC_IP:3000` 설정
+2. 루트 `.env`의 `API_BASE_URL`을 `http://YOUR_PC_IP:3000`으로 수정
 3. PC와 디바이스가 같은 Wi-Fi에 연결되어 있어야 함
 
 ## 🎯 권장 설정
@@ -160,8 +136,8 @@ flutter run
 
 ### 기능 테스트
 ```bash
-# mobile/.env만 생성
-echo "API_BASE_URL=http://10.0.2.2:3000" > mobile/.env
+# 루트 .env에서 API_BASE_URL 확인/수정
+notepad .env  # 혹은 원하는 편집기
 
 # 백엔드 시작
 docker-compose up -d

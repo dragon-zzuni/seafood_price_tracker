@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class RecognitionCandidateDto {
   @ApiProperty({
     description: '품목 ID',
-    example: 11,
+    example: 1,
   })
   item_id: number;
 

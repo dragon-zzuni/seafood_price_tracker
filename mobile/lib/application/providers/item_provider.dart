@@ -55,6 +55,8 @@ class ItemSearchNotifier extends StateNotifier<ItemSearchState> {
   
   /// 검색 쿼리 업데이트 (디바운싱 적용)
   void updateQuery(String query) {
+    print('🔍 [ItemSearchNotifier] updateQuery 호출: "$query"');
+    
     // 이전 타이머 취소
     _debounceTimer?.cancel();
     
@@ -63,12 +65,14 @@ class ItemSearchNotifier extends StateNotifier<ItemSearchState> {
     
     // 빈 쿼리면 결과 초기화
     if (query.trim().isEmpty) {
+      print('⚠️ [ItemSearchNotifier] 빈 쿼리 - 결과 초기화');
       state = state.copyWith(items: [], isLoading: false);
       return;
     }
     
     // 로딩 상태 표시
     state = state.copyWith(isLoading: true);
+    print('⏳ [ItemSearchNotifier] 로딩 시작, 300ms 후 검색 실행');
     
     // 300ms 후 검색 실행
     _debounceTimer = Timer(debounceDuration, () {
@@ -89,6 +93,8 @@ class ItemSearchNotifier extends StateNotifier<ItemSearchState> {
   
   /// 실제 검색 수행
   Future<void> _performSearch(String query, String? category) async {
+    print('🚀 [ItemSearchNotifier] _performSearch 시작: query="$query", category=$category');
+    
     try {
       final queryParams = <String, dynamic>{
         'query': query,
@@ -98,14 +104,21 @@ class ItemSearchNotifier extends StateNotifier<ItemSearchState> {
         queryParams['category'] = category;
       }
       
+      print('📡 [ItemSearchNotifier] API 요청: /items, params=$queryParams');
+      
       final response = await _apiClient.get(
         '/items',
         queryParameters: queryParams,
       );
       
+      print('✅ [ItemSearchNotifier] API 응답 수신: ${response.statusCode}');
+      
       // 응답 파싱
       final data = response.data;
       final List<dynamic> itemsJson = data['items'] ?? [];
+      
+      print('📦 [ItemSearchNotifier] 파싱된 품목 수: ${itemsJson.length}');
+      
       final items = itemsJson
           .map((json) => Item.fromJson(json as Map<String, dynamic>))
           .toList();
@@ -113,18 +126,25 @@ class ItemSearchNotifier extends StateNotifier<ItemSearchState> {
       // 최대 10개로 제한 (Requirements: 2.2)
       final limitedItems = items.take(10).toList();
       
+      print('✨ [ItemSearchNotifier] 최종 결과: ${limitedItems.length}개 품목');
+      if (limitedItems.isNotEmpty) {
+        print('   첫 번째 품목: ${limitedItems.first.nameKo} (ID: ${limitedItems.first.id})');
+      }
+      
       state = state.copyWith(
         items: limitedItems,
         isLoading: false,
         error: null,
       );
     } on ApiException catch (e) {
+      print('❌ [ItemSearchNotifier] API 에러: ${e.message}');
       state = state.copyWith(
         items: [],
         isLoading: false,
         error: e.message,
       );
     } catch (e) {
+      print('❌ [ItemSearchNotifier] 알 수 없는 에러: $e');
       state = state.copyWith(
         items: [],
         isLoading: false,

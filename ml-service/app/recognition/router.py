@@ -29,7 +29,7 @@ class RecognitionResponse(BaseModel):
                     },
                     {
                         "item_id": 1,
-                        "item_name": "고등어",
+                        "item_name": "우럭",
                         "confidence": 0.72
                     }
                 ]

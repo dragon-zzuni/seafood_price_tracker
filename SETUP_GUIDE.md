@@ -6,66 +6,42 @@ MainActivity.kt 파일이 생성되었습니다. 이제 Flutter v2 embedding을 
 
 ## 2. 환경 변수 설정
 
-프로젝트를 실행하기 전에 다음 환경 변수 파일들을 설정해야 합니다:
+프로젝트를 실행하기 전에 **루트 디렉토리의 `.env`** 파일만 준비하면 됩니다.  
+모바일 앱 역시 루트 `.env`를 직접 로드하므로 별도의 `mobile/.env` 파일이 필요 없습니다.
 
-### 2.1 루트 디렉토리 `.env` (Docker Compose용)
+### 2.1 루트 디렉토리 `.env`
 
 ```bash
 # PostgreSQL
 POSTGRES_DB=seafood
 POSTGRES_USER=seafood_user
 POSTGRES_PASSWORD=your_secure_password_here
-
-# Redis
-REDIS_URL=redis://redis:6379
-
-# Core Service
 DATABASE_URL=postgresql://seafood_user:your_secure_password_here@postgres:5432/seafood
 
-# BFF
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_URL=redis://redis:6379
+
+# 서비스 URL (BFF가 사용)
 CORE_SERVICE_URL=http://core:8000
 ML_SERVICE_URL=http://ml:8001
 
 # Data Ingestion
 SCHEDULE_TIMES=08:30,11:30,15:30
-PUBLIC_API_KEY=your_kamis_api_key_here
+RUN_IMMEDIATELY=false
+GARAK_API_KEY=your_garak_api_key_here
+PUBLIC_DATA_API_KEY=your_kamis_api_key_here
 
 # ML Service
 MODEL_PATH=/models
+DETECTION_MODEL=yolo12n.pt
+CLIP_MODEL_NAME=ViT-B-32
+CLIP_PRETRAINED=openai
 ```
 
-### 2.2 `bff/.env` (BFF 서비스)
-
-```bash
-REDIS_URL=redis://localhost:6379
-CORE_SERVICE_URL=http://localhost:8000
-ML_SERVICE_URL=http://localhost:8001
-PORT=3000
-```
-
-### 2.3 `core-service/.env` (Core 서비스)
-
-```bash
-DATABASE_URL=postgresql://seafood_user:your_secure_password_here@localhost:5432/seafood
-REDIS_URL=redis://localhost:6379
-```
-
-### 2.4 `ml-service/.env` (ML 서비스)
-
-```bash
-MODEL_PATH=./models
-DETECTION_MODEL=yolo_detect.pt
-CLASSIFICATION_MODEL=yolo_classify.pt
-```
-
-### 2.5 `mobile/.env` (Flutter 앱) - 새로 생성 필요
-
-```bash
-# BFF API 엔드포인트
-API_BASE_URL=http://10.0.2.2:3000  # Android 에뮬레이터용
-# API_BASE_URL=http://localhost:3000  # iOS 시뮬레이터용
-# API_BASE_URL=http://your-server-ip:3000  # 실제 디바이스용
-```
+모바일 실행 시 루트 `.env`의 `API_BASE_URL` 값을 자동으로 사용합니다.  
+Android/iOS/실제 디바이스 전환 시 루트 파일의 값을 수정하세요.
 
 ## 3. 빠른 시작 (개발 환경)
 
@@ -110,11 +86,12 @@ flutter run
 
 ## 5. 필수 API 키
 
-### KAMIS API 키 (공공데이터포털)
+### 공공데이터/API 키
 1. https://www.kamis.or.kr 접속
 2. 회원가입 및 로그인
 3. API 신청
-4. 발급받은 키를 `PUBLIC_API_KEY`에 설정
+4. 발급받은 키를 `PUBLIC_DATA_API_KEY`에 설정
+5. 가락시장 API 사용 시 `GARAK_API_KEY`도 함께 설정
 
 ## 6. 데이터베이스 초기화
 
@@ -141,11 +118,10 @@ flutter run
 - 방화벽: 포트 3000이 열려있는지 확인
 
 ### ML 모델 파일 없음
-ML 서비스는 YOLO 모델 파일이 필요합니다:
-- `ml-service/models/yolo_detect.pt`
-- `ml-service/models/yolo_classify.pt`
+ML 서비스는 YOLO Detection 모델 파일이 필요합니다:
+- `ml-service/models/yolo12n.pt` (또는 호환되는 YOLO 가중치)
 
-모델 파일이 없으면 이미지 인식 기능이 작동하지 않습니다.
+분류는 OpenAI CLIP 기본 모델을 사용하므로 별도 학습 파일이 없어도 동작합니다.
 
 ## 8. 다음 단계
 

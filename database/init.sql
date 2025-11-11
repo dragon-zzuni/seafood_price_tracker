@@ -67,15 +67,27 @@ INSERT INTO markets (name, code, type) VALUES
 -- 초기 데이터: 주요 품목
 INSERT INTO items (name_ko, name_en, category, season_start, season_end, default_origin, unit_default) VALUES
     ('광어', 'Flounder', 'fish', 11, 2, '제주', 'kg'),
-    ('고등어', 'Mackerel', 'fish', 9, 11, '동해', 'kg'),
-    ('조기', 'Croaker', 'fish', 4, 6, '서해', 'kg'),
-    ('갈치', 'Hairtail', 'fish', 9, 12, '제주', 'kg'),
-    ('오징어', 'Squid', 'fish', 6, 10, '동해', 'kg'),
-    ('꽃게', 'Blue Crab', 'crustacean', 4, 6, '서해', 'kg'),
-    ('대하', 'Prawn', 'crustacean', 9, 11, '서해', 'kg'),
-    ('전복', 'Abalone', 'shellfish', 1, 12, '제주', '마리'),
-    ('굴', 'Oyster', 'shellfish', 11, 2, '남해', 'kg'),
-    ('바지락', 'Manila Clam', 'shellfish', 3, 5, '서해', 'kg');
+    ('우럭', 'Rockfish', 'fish', 3, 6, '서해', 'kg'),
+    ('참돔', 'Red Seabream', 'fish', 4, 6, '남해', 'kg'),
+    ('연어', 'Salmon', 'fish', 9, 11, '노르웨이', 'kg'),
+    ('돌돔', 'Striped Beakfish', 'fish', 6, 8, '제주', 'kg'),
+    ('감성돔', 'Black Porgy', 'fish', 10, 12, '남해', 'kg'),
+    ('방어', 'Yellowtail Amberjack', 'fish', 11, 2, '제주', 'kg'),
+    ('민어', 'Croaker', 'fish', 6, 8, '서해', 'kg'),
+    ('농어', 'Sea Bass', 'fish', 5, 7, '서해', 'kg'),
+    ('고등어', 'Mackerel', 'fish', 9, 12, '동해', 'kg'),
+    ('대게', 'Snow Crab', 'crustacean', 11, 4, '동해', 'kg'),
+    ('킹크랩', 'King Crab', 'crustacean', 11, 3, '러시아', 'kg'),
+    ('코끼리조개', 'Geoduck', 'shellfish', 3, 5, '전남', 'kg'),
+    ('왕우럭조개', 'King Turban Shell', 'shellfish', 5, 8, '제주', 'kg'),
+    ('전복', 'Abalone', 'shellfish', 6, 9, '완도', '마리'),
+    ('멍게', 'Sea Squirt', 'other', 4, 6, '통영', 'kg'),
+    ('해삼', 'Sea Cucumber', 'other', 12, 2, '남해', 'kg'),
+    ('개불', 'Spoon Worm', 'other', 2, 4, '서해', 'kg'),
+    ('낙지', 'Octopus', 'cephalopod', 7, 10, '서해', 'kg'),
+    ('참소라', 'Top Shell', 'shellfish', 7, 9, '제주', 'kg'),
+    ('새우', 'Shrimp', 'crustacean', 5, 9, '서해', 'kg'),
+    ('갑오징어', 'Cuttlefish', 'cephalopod', 4, 6, '남해', 'kg');
 
 -- Materialized View: 일별 평균 가격 (차트용)
 CREATE MATERIALIZED VIEW daily_avg_prices AS

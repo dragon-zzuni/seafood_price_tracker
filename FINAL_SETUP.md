@@ -51,8 +51,9 @@ flutter run
 
 ### 환경 변수 설정하고 싶다면:
 
-`mobile/.env` 파일 생성:
+루트 `.env` 파일에서 `API_BASE_URL` 값을 수정하세요:
 ```bash
+# Android 에뮬레이터 (기본)
 API_BASE_URL=http://10.0.2.2:3000
 ```
 
@@ -91,10 +92,9 @@ API_BASE_URL=http://192.168.1.100:3000
 - 실제 기능 테스트 시에만 백엔드 필요
 - Docker Compose로 쉽게 시작 가능
 
-### ✨ 환경 변수 통합은 불가능합니다
-- 각 서비스(BFF, Core, ML)가 독립적으로 실행
-- 각자의 .env 파일 필요
-- **하지만** 모바일 앱만 테스트한다면 `mobile/.env` 하나면 충분!
+### ✨ 환경 변수는 루트 `.env`로 통합되었습니다
+- 각 서비스(BFF, Core, ML, Mobile)가 동일한 파일을 참조
+- Android/iOS/실제 디바이스는 `API_BASE_URL` 값만 수정하면 됨
 
 ## 🐛 문제 해결
 

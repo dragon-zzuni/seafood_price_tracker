@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database.base_repository import get_db
+from app.database.connection import get_db
 from app.aliases.service import AliasService
 from app.aliases.schemas import (
     AliasMatchRequest,

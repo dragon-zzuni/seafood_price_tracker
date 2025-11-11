@@ -24,32 +24,26 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
-  void initState() {
-    super.initState();
-    // 에러 상태 변경 감지를 위한 리스너 설정
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen<ItemSearchState>(
-        itemSearchProvider,
-        (previous, next) {
-          if (next.error != null && next.error != previous?.error) {
-            // 에러 발생 시 스낵바 표시 (3초 자동 숨김)
-            ErrorSnackbar.show(
-              context,
-              AppError(
-                type: ErrorType.unknown,
-                message: next.error!,
-                canRetry: false,
-              ),
-            );
-          }
-        },
-      );
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(itemSearchProvider);
+    
+    // 에러 상태 변경 감지를 위한 리스너 설정
+    ref.listen<ItemSearchState>(
+      itemSearchProvider,
+      (previous, next) {
+        if (next.error != null && next.error != previous?.error) {
+          // 에러 발생 시 스낵바 표시 (3초 자동 숨김)
+          ErrorSnackbar.show(
+            context,
+            AppError(
+              type: ErrorType.unknown,
+              message: next.error!,
+              canRetry: false,
+            ),
+          );
+        }
+      },
+    );
     
     return Scaffold(
       appBar: AppBar(
@@ -200,9 +194,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // 임시 인기 품목 데이터
     final popularItems = [
       {'name': '광어', 'icon': Icons.set_meal, 'color': Colors.blue},
-      {'name': '고등어', 'icon': Icons.set_meal, 'color': Colors.teal},
-      {'name': '전복', 'icon': Icons.water_drop, 'color': Colors.orange},
-      {'name': '대게', 'icon': Icons.pest_control, 'color': Colors.red},
+      {'name': '우럭', 'icon': Icons.set_meal, 'color': Colors.indigo},
+      {'name': '참돔', 'icon': Icons.set_meal, 'color': Colors.pinkAccent},
+      {'name': '방어', 'icon': Icons.set_meal, 'color': Colors.green},
+      {'name': '대게', 'icon': Icons.pest_control, 'color': Colors.deepOrange},
+      {'name': '킹크랩', 'icon': Icons.pest_control, 'color': Colors.redAccent},
+      {'name': '전복', 'icon': Icons.water_drop, 'color': Colors.teal},
+      {'name': '낙지', 'icon': Icons.bubble_chart, 'color': Colors.deepPurple},
+      {'name': '새우', 'icon': Icons.water_drop, 'color': Colors.orange},
+      {'name': '갑오징어', 'icon': Icons.bubble_chart, 'color': Colors.brown},
     ];
     
     return Column(
@@ -233,9 +233,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               name: item['name'] as String,
               icon: item['icon'] as IconData,
               color: item['color'] as Color,
-              onTap: () {
+              onTap: () async {
+                print('🔍 인기 품목 검색 시작: ${item['name']}');
+                
                 // 해당 품목 검색
                 ref.read(itemSearchProvider.notifier).updateQuery(item['name'] as String);
+                
+                // 검색 결과를 기다림 (최대 2초)
+                await Future.delayed(const Duration(milliseconds: 500));
+                
+                final searchState = ref.read(itemSearchProvider);
+                print('📊 검색 결과: ${searchState.items.length}개 품목');
+                
+                if (searchState.items.isNotEmpty) {
+                  final firstItem = searchState.items.first;
+                  print('✅ 첫 번째 품목 선택: ${firstItem.nameKo} (ID: ${firstItem.id})');
+                  
+                  ref.read(selectedItemProvider.notifier).state = firstItem;
+                  
+                  // 대시보드 화면으로 이동
+                  if (mounted) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ItemDashboardScreen(
+                          itemId: firstItem.id,
+                          itemName: firstItem.nameKo,
+                        ),
+                      ),
+                    );
+                  }
+                } else {
+                  print('❌ 검색 결과 없음');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${item['name']} 품목을 찾을 수 없습니다'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                }
               },
             );
           },
@@ -252,7 +289,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required VoidCallback onTap,
   }) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        print('🐟 인기 품목 선택: $name');
+        onTap();
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(

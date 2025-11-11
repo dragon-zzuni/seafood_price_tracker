@@ -5,10 +5,12 @@ services:
   postgres:
     image: postgres:15
     container_name: seafood-postgres
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: seafood
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${POSTGRES_DB:-seafood}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
@@ -41,9 +43,11 @@ services:
       context: ./core-service
       dockerfile: Dockerfile
     container_name: seafood-core
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://user:pass@postgres:5432/seafood
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
     ports:
       - "8000:8000"
     depends_on:
@@ -61,8 +65,15 @@ services:
       context: ./ml-service
       dockerfile: Dockerfile
     container_name: seafood-ml
+    env_file:
+      - .env
     environment:
-      MODEL_PATH: /models
+      MODEL_PATH: ${MODEL_PATH:-/models}
+      DETECTION_MODEL: ${DETECTION_MODEL:-yolo12n.pt}
+      CLIP_MODEL_NAME: ${CLIP_MODEL_NAME:-ViT-B-32}
+      CLIP_PRETRAINED: ${CLIP_PRETRAINED:-openai}
+      CLIP_DEVICE: ${CLIP_DEVICE:-cpu}
+      CLIP_CLASS_LABELS: ${CLIP_CLASS_LABELS:-}
     ports:
       - "8001:8001"
     volumes:
@@ -84,10 +95,12 @@ services:
       context: ./bff
       dockerfile: Dockerfile
     container_name: seafood-bff
+    env_file:
+      - .env
     environment:
-      REDIS_URL: redis://redis:6379
-      CORE_SERVICE_URL: http://core:8000
-      ML_SERVICE_URL: http://ml:8001
+      REDIS_URL: ${REDIS_URL}
+      CORE_SERVICE_URL: ${CORE_SERVICE_URL}
+      ML_SERVICE_URL: ${ML_SERVICE_URL}
     ports:
       - "3000:3000"
     depends_on:
@@ -105,9 +118,21 @@ services:
       context: ./data-ingestion
       dockerfile: Dockerfile
     container_name: seafood-ingestion
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://user:pass@postgres:5432/seafood
-      SCHEDULE_TIMES: "08:30,11:30,15:30"
+      DATABASE_URL: ${DATABASE_URL}
+      SCHEDULE_TIMES: ${SCHEDULE_TIMES:-08:30,11:30,15:30}
+      PUBLIC_DATA_API_KEY: ${PUBLIC_DATA_API_KEY}
+      KAMIS_API_KEY: ${KAMIS_API_KEY}
+      KAMIS_CERT_ID: ${KAMIS_CERT_ID}
+      FISHERY_DISTRIBUTION_API_KEY: ${FISHERY_DISTRIBUTION_API_KEY}
+      SPECIES_CODE_API_KEY: ${SPECIES_CODE_API_KEY}
+      TRACEABILITY_API_KEY: ${TRACEABILITY_API_KEY}
+      QUALITY_CERT_API_KEY: ${QUALITY_CERT_API_KEY}
+      ORGANIC_CERT_API_KEY: ${ORGANIC_CERT_API_KEY}
+      GI_CERT_API_KEY: ${GI_CERT_API_KEY}
+      PROHIBITED_SPECIES_API_KEY: ${PROHIBITED_SPECIES_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy

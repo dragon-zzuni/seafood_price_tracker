@@ -4,7 +4,7 @@ import os
 import logging
 
 from .models.yolo_detector import YOLODetector
-from .models.yolo_classifier import YOLOClassifier
+from .models.clip_classifier import CLIPClassifier
 from .recognition.pipeline import RecognitionPipeline
 from .recognition import router as recognition_router
 
@@ -39,11 +39,25 @@ async def startup_event():
     try:
         # 환경 변수에서 모델 경로 가져오기
         model_path = os.getenv("MODEL_PATH", "/models")
-        detection_model = os.getenv("DETECTION_MODEL", "yolo_detect.pt")
-        classification_model = os.getenv("CLASSIFICATION_MODEL", "yolo_classify.pt")
+        detection_model = os.getenv("DETECTION_MODEL", "yolo12n.pt")
+        clip_model_name = os.getenv(
+            "CLIP_MODEL_NAME",
+            CLIPClassifier.DEFAULT_MODEL_NAME,
+        )
+        clip_pretrained = os.getenv(
+            "CLIP_PRETRAINED",
+            CLIPClassifier.DEFAULT_PRETRAINED,
+        )
+        clip_device = os.getenv("CLIP_DEVICE") or None
+        clip_prompt_template = os.getenv("CLIP_PROMPT_TEMPLATE")
+        clip_labels_raw = os.getenv("CLIP_CLASS_LABELS")
+        clip_labels = (
+            [label.strip() for label in clip_labels_raw.split(",") if label.strip()]
+            if clip_labels_raw
+            else None
+        )
         
         detection_path = os.path.join(model_path, detection_model)
-        classification_path = os.path.join(model_path, classification_model)
         
         logger.info("ML 모델 로딩 시작...")
         
@@ -54,16 +68,17 @@ async def startup_event():
             # 실제 배포 시에는 여기서 예외를 발생시켜야 함
             return
         
-        if not os.path.exists(classification_path):
-            logger.warning(f"Classification 모델 파일이 없습니다: {classification_path}")
-            logger.warning("데모 모드로 실행됩니다 (실제 모델 없이)")
-            return
-        
         # Detection 모델 로딩
         detector = YOLODetector(detection_path)
         
-        # Classification 모델 로딩
-        classifier = YOLOClassifier(classification_path)
+        # CLIP Classification 모델 로딩
+        classifier = CLIPClassifier(
+            model_name=clip_model_name,
+            pretrained=clip_pretrained,
+            device=clip_device,
+            class_labels=clip_labels,
+            prompt_template=clip_prompt_template,
+        )
         
         # 파이프라인 생성
         pipeline = RecognitionPipeline(

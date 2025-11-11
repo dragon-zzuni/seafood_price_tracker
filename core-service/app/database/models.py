@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DECIMAL, ForeignKey, TIMESTAMP, Index, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Date, DECIMAL, ForeignKey, TIMESTAMP, Boolean, Index, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -23,6 +23,9 @@ class Item(Base):
     prices = relationship("MarketPrice", back_populates="item")
     aliases = relationship("ItemAlias", back_populates="item")
     price_rule = relationship("PriceRule", back_populates="item", uselist=False)
+    certifications = relationship("Certification", back_populates="item")
+    distribution_stats = relationship("DistributionStats", back_populates="item")
+    monthly_prices = relationship("MonthlyPrice", back_populates="item")
 
 class Market(Base):
     """시장 테이블"""
@@ -92,4 +95,122 @@ class ItemAlias(Base):
     # 유니크 제약
     __table_args__ = (
         UniqueConstraint('market_id', 'raw_name', name='uq_market_raw_name'),
+    )
+
+
+# 공공데이터 API 통합 모델
+
+class SpeciesCode(Base):
+    """어종 코드 테이블"""
+    __tablename__ = "species_codes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    name_ko = Column(String(100), nullable=False, index=True)
+    name_en = Column(String(100))
+    category = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
+class TraceabilityCode(Base):
+    """수산물이력제 품목코드 테이블"""
+    __tablename__ = "traceability_codes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    product_name = Column(String(100), nullable=False, index=True)
+    registration_date = Column(Date, nullable=False)
+    status = Column(String(20), server_default='active')
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class Certification(Base):
+    """인증 정보 테이블"""
+    __tablename__ = "certifications"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    cert_type = Column(String(20), nullable=False, index=True)  # 'quality', 'organic', 'gi'
+    product_name = Column(String(100), nullable=False)
+    company_name = Column(String(200))
+    cert_number = Column(String(100), unique=True)
+    valid_from = Column(Date, nullable=False)
+    valid_until = Column(Date, nullable=False)
+    region = Column(String(100))  # GI용
+    is_active = Column(Boolean, server_default='true', index=True)
+    item_id = Column(Integer, ForeignKey("items.id"), index=True)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    
+    # 관계
+    item = relationship("Item", back_populates="certifications")
+    
+    # 인덱스
+    __table_args__ = (
+        Index('idx_certifications_product_name', 'product_name'),
+    )
+
+
+class ProhibitedSpecies(Base):
+    """포획 금지 어종 테이블"""
+    __tablename__ = "prohibited_species"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    species_code = Column(String(50), nullable=False, index=True)
+    name_ko = Column(String(100), nullable=False, index=True)
+    name_en = Column(String(100))
+    prohibition_start = Column(Date, nullable=False)
+    prohibition_end = Column(Date, nullable=False)
+    reason = Column(String)
+    # is_currently_prohibited는 GENERATED ALWAYS AS 컬럼으로 DB에서 자동 계산
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
+class DistributionStats(Base):
+    """유통 통계 테이블"""
+    __tablename__ = "distribution_stats"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("items.id"), nullable=False, index=True)
+    auction_location = Column(String(100), nullable=False)
+    origin = Column(String(100))
+    quantity = Column(DECIMAL(10, 2))
+    amount = Column(DECIMAL(12, 2))
+    date = Column(Date, nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    
+    # 관계
+    item = relationship("Item", back_populates="distribution_stats")
+    
+    # 복합 인덱스 및 유니크 제약
+    __table_args__ = (
+        Index('idx_distribution_date', 'date'),
+        Index('idx_distribution_item_date', 'item_id', 'date'),
+        UniqueConstraint('item_id', 'auction_location', 'date', name='uq_item_auction_date'),
+    )
+
+
+class MonthlyPrice(Base):
+    """월별 가격 테이블"""
+    __tablename__ = "monthly_prices"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("items.id"), nullable=False, index=True)
+    year = Column(Integer, nullable=False)
+    month = Column(Integer, nullable=False)
+    avg_price = Column(DECIMAL(10, 2), nullable=False)
+    min_price = Column(DECIMAL(10, 2))
+    max_price = Column(DECIMAL(10, 2))
+    unit = Column(String(20))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    
+    # 관계
+    item = relationship("Item", back_populates="monthly_prices")
+    
+    # 복합 인덱스 및 유니크 제약
+    __table_args__ = (
+        Index('idx_monthly_prices_period', 'year', 'month'),
+        Index('idx_monthly_prices_item_period', 'item_id', 'year', 'month'),
+        UniqueConstraint('item_id', 'year', 'month', name='uq_item_year_month'),
     )

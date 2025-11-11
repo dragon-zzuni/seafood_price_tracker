@@ -71,7 +71,7 @@ class _ItemSearchBarState extends State<ItemSearchBar> {
             controller: _controller,
             focusNode: _focusNode,
             decoration: InputDecoration(
-              hintText: '품목명을 입력하세요 (예: 광어, 고등어)',
+              hintText: '품목명을 입력하세요 (예: 광어, 우럭)',
               prefixIcon: const Icon(Icons.search, color: Colors.blue),
               suffixIcon: widget.isLoading
                   ? const Padding(
@@ -133,6 +133,7 @@ class _ItemSearchBarState extends State<ItemSearchBar> {
       {'value': 'fish', 'label': '생선', 'icon': Icons.set_meal},
       {'value': 'shellfish', 'label': '조개류', 'icon': Icons.water_drop},
       {'value': 'crustacean', 'label': '갑각류', 'icon': Icons.pest_control},
+      {'value': 'cephalopod', 'label': '연체류', 'icon': Icons.bubble_chart},
       {'value': 'other', 'label': '기타', 'icon': Icons.more_horiz},
     ];
     
@@ -258,6 +259,8 @@ class _ItemSearchBarState extends State<ItemSearchBar> {
         return Colors.teal;
       case 'crustacean':
         return Colors.orange;
+      case 'cephalopod':
+        return Colors.deepPurple;
       case 'other':
         return Colors.grey;
       default:
@@ -274,6 +277,8 @@ class _ItemSearchBarState extends State<ItemSearchBar> {
         return Icons.water_drop;
       case 'crustacean':
         return Icons.pest_control;
+      case 'cephalopod':
+        return Icons.bubble_chart;
       case 'other':
         return Icons.more_horiz;
       default:
@@ -290,6 +295,8 @@ class _ItemSearchBarState extends State<ItemSearchBar> {
         return '조개류';
       case 'crustacean':
         return '갑각류';
+      case 'cephalopod':
+        return '연체류';
       case 'other':
         return '기타';
       default:

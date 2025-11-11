@@ -30,8 +30,8 @@
 pip install -r requirements.txt
 
 # 환경변수 설정
-cp .env.example .env
-# .env 파일 편집하여 API 키 등 설정
+# 루트 .env.example을 참고하여 필요한 값만 별도 .env로 정의하거나
+# 이미 준비된 루트 .env를 --env-file로 재사용하세요.
 
 # 스케줄러 실행
 python scheduler.py
@@ -53,7 +53,7 @@ docker run -d \
 ### Docker Compose
 
 ```bash
-# docker-compose.yml에 정의된 대로 실행
+# 루트 디렉터리에서 실행 (공용 .env 사용)
 docker-compose up -d ingestion
 ```
 

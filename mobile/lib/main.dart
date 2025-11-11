@@ -12,7 +12,7 @@ void main() async {
   
   // 환경 변수 로드 (파일이 없어도 앱 실행 가능)
   try {
-    await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: "../.env");
   } catch (e) {
     print('Warning: .env file not found. Using default API URL.');
   }

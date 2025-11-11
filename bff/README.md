@@ -90,18 +90,18 @@ curl -X POST http://localhost:3000/api/recognition \
 {
   "candidates": [
     {
-      "item_id": 11,
+      "item_id": 1,
       "item_name": "광어",
       "confidence": 0.85
     },
     {
-      "item_id": 23,
-      "item_name": "넙치",
+      "item_id": 2,
+      "item_name": "우럭",
       "confidence": 0.72
     },
     {
-      "item_id": 45,
-      "item_name": "도다리",
+      "item_id": 11,
+      "item_name": "대게",
       "confidence": 0.58
     }
   ]

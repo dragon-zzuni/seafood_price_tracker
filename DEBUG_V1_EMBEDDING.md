@@ -26,7 +26,7 @@ flutter create seafood_price_tracker_new
 # lib 폴더 복사
 cp -r mobile/lib seafood_price_tracker_new/
 cp mobile/pubspec.yaml seafood_price_tracker_new/
-cp mobile/.env seafood_price_tracker_new/
+# (루트 .env를 그대로 사용하며 별도 모바일 .env는 필요 없음)
 cp -r mobile/android/app/src/main/AndroidManifest.xml seafood_price_tracker_new/android/app/src/main/
 
 # 새 프로젝트로 이동

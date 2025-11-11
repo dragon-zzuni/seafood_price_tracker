@@ -5,7 +5,7 @@
 ## 기능
 
 - **객체 탐지 (Detection)**: YOLO 모델을 사용하여 이미지에서 수산물 영역 탐지
-- **품목 분류 (Classification)**: 탐지된 영역의 품목 분류
+- **품목 분류 (Classification)**: 탐지된 영역을 CLIP으로 분류하여 22개 품목 확장 세트 지원
 - **이미지 전처리**: 크기 검증, 리사이징, 정규화
 - **파이프라인 통합**: Detection → Classification 자동 처리
 
@@ -16,7 +16,7 @@ app/
 ├── models/              # 모델 인터페이스 및 구현
 │   ├── base.py         # 추상 클래스 (Strategy 패턴)
 │   ├── yolo_detector.py
-│   └── yolo_classifier.py
+│   └── clip_classifier.py
 ├── preprocessing/       # 이미지 전처리
 │   └── image_processor.py
 ├── recognition/         # 인식 파이프라인
@@ -37,18 +37,23 @@ pip install -r requirements.txt
 
 ```env
 MODEL_PATH=/models
-DETECTION_MODEL=yolo_detect.pt
-CLASSIFICATION_MODEL=yolo_classify.pt
+DETECTION_MODEL=yolo12n.pt
+CLIP_MODEL_NAME=ViT-B-32
+CLIP_PRETRAINED=openai
+# 선택: GPU 사용 시 cuda, 기본은 자동 감지
+# CLIP_DEVICE=cpu
+# 선택: 커스텀 레이블 (쉼표 구분)
+# CLIP_CLASS_LABELS=광어,우럭,...
 ```
 
 ## 모델 파일
 
-다음 YOLO 모델 파일이 필요합니다:
+다음 YOLO Detection 모델 파일만 준비하면 됩니다:
 
-- `yolo_detect.pt`: 객체 탐지 모델
-- `yolo_classify.pt`: 품목 분류 모델
+- `yolo12n.pt`: 객체 탐지 모델 (YOLO 기본 가중치)
 
-모델 파일은 `MODEL_PATH`에 지정된 디렉토리에 배치하세요.
+모델 파일은 `MODEL_PATH`에 지정된 디렉토리에 배치하세요.  
+분류(CLIP)는 최초 실행 시 자동으로 사전학습 가중치를 다운로드합니다.
 
 ## 실행
 
@@ -90,7 +95,7 @@ curl -X POST "http://localhost:8001/recognition" \
     },
     {
       "item_id": 1,
-      "item_name": "고등어",
+      "item_name": "우럭",
       "confidence": 0.72
     }
   ]
@@ -106,7 +111,7 @@ GET /recognition/health
 {
   "status": "healthy",
   "detector": "YOLODetector",
-  "classifier": "YOLOClassifier",
+  "classifier": "CLIPClassifier",
   "confidence_threshold": 0.3,
   "max_results": 4
 }
@@ -131,22 +136,17 @@ GET /recognition/health
 Strategy 패턴을 사용하여 모델을 쉽게 교체할 수 있습니다:
 
 ```python
-from app.models.base import DetectionModel, ClassificationModel
+from app.models.base import DetectionModel
+from app.models.clip_classifier import CLIPClassifier
 
 # 커스텀 Detection 모델
 class CustomDetector(DetectionModel):
-    def detect(self, image):
-        # 구현
-        pass
-    
-    def load_model(self, model_path):
-        # 구현
-        pass
+    ...
 
 # 파이프라인에 적용
 pipeline = RecognitionPipeline(
     detector=CustomDetector("custom_model.pt"),
-    classifier=YOLOClassifier("yolo_classify.pt")
+    classifier=CLIPClassifier(model_name="ViT-B-16")
 )
 ```
 

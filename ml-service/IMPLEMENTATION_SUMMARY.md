@@ -34,23 +34,19 @@
 - `detect()`: 이미지에서 객체 탐지
 - `_parse_results()`: YOLO 결과 파싱
 
-### 3. YOLO Classification 모듈
+### 3. CLIP Classification 모듈
 
-**파일**: `app/models/yolo_classifier.py`
+**파일**: `app/models/clip_classifier.py`
 
 **기능**:
-- YOLO 모델을 사용한 품목 분류
-- 품목 ID와 이름 매핑
-- 신뢰도 점수 계산
+- OpenAI CLIP 사전학습 모델을 활용한 품목 분류
+- 22개 확장 품목 리스트 기본 지원 (광어, 우럭, 전복, 대게 등)
+- Detection 결과의 크롭 이미지를 텍스트 프롬프트와 비교하여 확률 산출
 
 **주요 메서드**:
-- `load_model()`: 모델 파일 로딩
-- `classify()`: 이미지 품목 분류
-- `_parse_results()`: YOLO 결과 파싱
-
-**품목 매핑**:
-- 15개 수산물 품목 지원 (광어, 고등어, 갈치 등)
-- 확장 가능한 매핑 구조
+- `load_model()`: CLIP 모델 및 전처리 로딩
+- `classify()`: 크롭 이미지를 분류하여 확률 반환
+- `_build_text_features()`: 품목 텍스트 임베딩 생성
 
 ### 4. 이미지 전처리 모듈
 
@@ -142,8 +138,11 @@ curl -X POST "http://localhost:8001/recognition" \
 
 **환경 변수**:
 - `MODEL_PATH`: 모델 파일 디렉토리
-- `DETECTION_MODEL`: Detection 모델 파일명
-- `CLASSIFICATION_MODEL`: Classification 모델 파일명
+- `DETECTION_MODEL`: Detection 모델 파일명 (기본: `yolo12n.pt`)
+- `CLIP_MODEL_NAME`: CLIP 비전 백본 이름 (기본: `ViT-B-32`)
+- `CLIP_PRETRAINED`: 사전학습 체크포인트 (기본: `openai`)
+- `CLIP_DEVICE`: 추론 장치 선택 (선택)
+- `CLIP_CLASS_LABELS`: 쉼표 구분 품목 목록 (선택)
 
 ## 디렉토리 구조
 
@@ -156,7 +155,7 @@ ml-service/
 │   │   ├── __init__.py
 │   │   ├── base.py               # 모델 인터페이스
 │   │   ├── yolo_detector.py      # YOLO Detection
-│   │   └── yolo_classifier.py    # YOLO Classification
+│   │   └── clip_classifier.py    # CLIP Classification
 │   ├── preprocessing/
 │   │   ├── __init__.py
 │   │   └── image_processor.py    # 이미지 전처리
@@ -168,7 +167,6 @@ ml-service/
 │   │   └── __init__.py
 │   └── classification/
 │       └── __init__.py
-├── .env.example                   # 환경 변수 예시
 ├── Dockerfile                     # Docker 이미지
 ├── requirements.txt               # Python 의존성
 ├── README.md                      # 사용 가이드
@@ -209,7 +207,7 @@ ml-service/
 - YOLODetector로 수산물 영역 탐지
 
 ### ✅ Requirement 1.5: Classification
-- YOLOClassifier로 품목 분류
+- CLIPClassifier로 품목 분류
 
 ### ✅ Requirement 1.6: 신뢰도 점수
 - Detection × Classification 신뢰도 결합
@@ -281,7 +279,7 @@ class CLIPClassifier(ClassificationModel):
 ```
 
 ### 2. 품목 추가
-- `YOLOClassifier.ITEM_MAPPING`에 추가
+- `CLIP_CLASS_LABELS` 환경변수 혹은 코드 상의 레이블 리스트에 추가
 - 또는 DB/설정 파일에서 로딩
 
 ### 3. 전처리 커스터마이징

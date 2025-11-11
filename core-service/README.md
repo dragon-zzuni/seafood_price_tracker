@@ -47,8 +47,7 @@ core-service/
 ├── tests/                  # 테스트
 │   └── test_repositories.py
 ├── requirements.txt
-├── Dockerfile
-└── .env.example
+└── Dockerfile
 
 ```
 
@@ -56,10 +55,12 @@ core-service/
 
 ### 1. 환경 변수 설정
 
-```bash
-cp .env.example .env
-# .env 파일을 편집하여 데이터베이스 URL 설정
-```
+- Docker Compose 사용 시 루트 디렉터리의 `.env` 파일을 통해 `DATABASE_URL`, `REDIS_URL`이 자동으로 주입됩니다.
+- 독립 실행 시에는 아래 환경 변수를 직접 지정하세요:
+  ```bash
+  export DATABASE_URL=postgresql://user:pass@localhost:5432/seafood
+  export REDIS_URL=redis://localhost:6379
+  ```
 
 ### 2. 의존성 설치
 
