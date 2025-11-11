@@ -6,10 +6,13 @@ Thumbs.db
 *.swp
 *.swo
 *.bak
-!.env.example
 .env
 .env.*
 *.env
+.kiro/**
+test_app/**
+
+!/.env.example
 .kiro/**
 test_app/**
 
